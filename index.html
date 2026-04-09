@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metas do Funil - Kommo</title>
+  <style>
+    :root {
+      --primary: #4c8bf7;
+      --success: #22c55e;
+      --bg: #0f111a;
+      --bg-alt: #1a1d2e;
+      --text-main: #ffffff;
+      --text-muted: #8f9a9d;
+      --border: #2a2d3d;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: transparent;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .widget-card {
+      background: var(--bg);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      padding: 24px;
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
+      border: 1px solid var(--border);
+    }
+
+    .header {
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status {
+      font-size: 11px;
+      margin-top: 6px;
+      color: var(--text-muted);
+      min-height: 16px;
+      transition: color 0.3s;
+    }
+
+    .status.ok    { color: var(--success); }
+    .status.erro  { color: #f87171; }
+
+    .funnel-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .funnel-row:last-child {
+      border-bottom: none;
+    }
+
+    .stage-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .input-box {
+      width: 60px;
+      padding: 8px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 16px;
+      text-align: right;
+      color: var(--success);
+      font-weight: 700;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .input-box:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(76, 139, 247, 0.2);
+    }
+
+    .pct-sign {
+      color: var(--text-muted);
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="widget-card">
+    <div class="header">
+      <h3 class="title">Metas do Funil</h3>
+      <p class="status" id="status">Carregando...</p>
+    </div>
+
+    <div class="funnel-row">
+      <span class="stage-name">Qualificado</span>
+      <div class="input-wrap">
+        <input type="number" id="qualificado" class="input-box" value="80" min="0" max="100">
+        <span class="pct-sign">%</span>
+      </div>
+    </div>
+
+    <div class="funnel-row">
+      <span class="stage-name">Agendamento</span>
+      <div class="input-wrap">
+        <input type="number" id="agendamento" class="input-box" value="40" min="0" max="100">
+        <span class="pct-sign">%</span>
+      </div>
+    </div>
+
+    <div class="funnel-row">
+      <span class="stage-name">Comparecimentos</span>
+      <div class="input-wrap">
+        <input type="number" id="comparecimentos" class="input-box" value="30" min="0" max="100">
+        <span class="pct-sign">%</span>
+      </div>
+    </div>
+
+    <div class="funnel-row">
+      <span class="stage-name">Vendas Ganhas</span>
+      <div class="input-wrap">
+        <input type="number" id="vendas_ganhas" class="input-box" value="30" min="0" max="100">
+        <span class="pct-sign">%</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const statusEl = document.getElementById('status')
+
+    function setStatus(msg, tipo) {
+      statusEl.textContent = msg
+      statusEl.className = 'status ' + (tipo || '')
+    }
+
+    // 1. Busca as chaves do servidor local (que lê do .env)
+    let supabase
+    try {
+      const config = await fetch('/config.json').then(r => r.json())
+      supabase = createClient(config.supabaseUrl, config.supabaseKey)
+    } catch (e) {
+      setStatus('Erro ao conectar com o servidor local.', 'erro')
+      throw e
+    }
+
+    const inputs = {
+      qualificado:    document.getElementById('qualificado'),
+      agendamento:    document.getElementById('agendamento'),
+      comparecimentos: document.getElementById('comparecimentos'),
+      vendas_ganhas:  document.getElementById('vendas_ganhas'),
+    }
+
+    // 2. Carrega as metas salvas no Supabase
+    async function carregarMetas() {
+      setStatus('Carregando...')
+      const { data, error } = await supabase
+        .from('metas_funil')
+        .select('*')
+        .eq('id', 1)
+        .single()
+
+      if (error) {
+        setStatus('Erro ao carregar dados.', 'erro')
+        return
+      }
+
+      if (data) {
+        inputs.qualificado.value    = data.qualificado
+        inputs.agendamento.value    = data.agendamento
+        inputs.comparecimentos.value = data.comparecimentos
+        inputs.vendas_ganhas.value  = data.vendas_ganhas
+      }
+
+      setStatus('✓ Dados carregados', 'ok')
+      setTimeout(() => setStatus(''), 2000)
+    }
+
+    // 3. Salva as metas no Supabase
+    async function salvarMetas() {
+      setStatus('Salvando...')
+      const { error } = await supabase
+        .from('metas_funil')
+        .upsert({
+          id:              1,
+          qualificado:     Number(inputs.qualificado.value),
+          agendamento:     Number(inputs.agendamento.value),
+          comparecimentos: Number(inputs.comparecimentos.value),
+          vendas_ganhas:   Number(inputs.vendas_ganhas.value),
+        })
+
+      if (error) {
+        setStatus('Erro ao salvar.', 'erro')
+      } else {
+        setStatus('✓ Salvo!', 'ok')
+        setTimeout(() => setStatus(''), 2000)
+      }
+    }
+
+    carregarMetas()
+
+    Object.values(inputs).forEach(input => {
+      input.addEventListener('change', salvarMetas)
+    })
+  </script>
+</body>
+</html>
