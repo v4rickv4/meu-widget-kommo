@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Widget de Conversão - Kommo</title>
+  <style>
+    /* Estilos baseados na interface do Kommo para parecer nativo */
+    :root {
+      --primary: #4c8bf7;
+      --success: #22c55e;
+      --bg: #ffffff;
+      --text-main: #131420;
+      --text-muted: #8f9a9d;
+      --border: #d3d7d8;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: transparent; /* Fica transparente no painel do Kommo */
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .widget-card {
+      background: var(--bg);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
+      border: 1px solid var(--border);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .filter-input {
+      flex: 1;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--text-main);
+      outline: none;
+    }
+    .filter-input:focus { border-color: var(--primary); }
+    .btn-filter {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0 15px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-filter:hover { background: #3a70c9; }
+    
+    /* Área de Resultados */
+    .result-area {
+      text-align: center;
+      padding: 10px 0;
+    }
+    .conversion-rate {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--success);
+      margin: 0;
+      line-height: 1;
+    }
+    .conversion-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+    .funnel-stats {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid var(--border);
+    }
+    .stat-box {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .stat-name {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    
+    /* Loader */
+    .loader {
+      display: none;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 20px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="widget-card">
+    <div class="header">
+      <h3 class="title">Taxa de Avanço</h3>
+    </div>
+    
+    <div class="filters">
+      <input type="date" id="dateStart" class="filter-input">
+      <input type="date" id="dateEnd" class="filter-input">
+      <button onclick="carregarDados()" class="btn-filter">Filtrar</button>
+    </div>
+
+    <div id="loader" class="loader">Processando histórico...</div>
+
+    <div id="resultArea" class="result-area">
+      <h1 class="conversion-rate" id="displayRate">0%</h1>
+      <div class="conversion-label">Conversão: Agendamento ➔ Venda</div>
+      
+      <div class="funnel-stats">
+        <div class="stat-box">
+          <div class="stat-value" id="displayAgenda">0</div>
+          <div class="stat-name">Agendamentos</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="displayVenda">0</div>
+          <div class="stat-name">Vendas Ganhas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Define datas padrão (Hoje e 7 dias atrás)
+    document.addEventListener('DOMContentLoaded', () => {
+      const hoje = new Date();
+      const seteDiasAtras = new Date();
+      seteDiasAtras.setDate(hoje.getDate() - 7);
+      
+      document.getElementById('dateEnd').value = hoje.toISOString().split('T')[0];
+      document.getElementById('dateStart').value = seteDiasAtras.toISOString().split('T')[0];
+    });
+
+    function carregarDados() {
+      // 1. Mostra o carregamento
+      document.getElementById('resultArea').style.display = 'none';
+      document.getElementById('loader').style.display = 'block';
+
+      // 2. Pega as datas selecionadas
+      const start = document.getElementById('dateStart').value;
+      const end = document.getElementById('dateEnd').value;
+
+      /* * ---------------------------------------------------------
+       * INTEGRAÇÃO COM A API DO KOMMO (Onde a mágica acontece)
+       * Aqui faremos a requisição POST/GET para o seu back-end ou 
+       * diretamente para a API de Eventos do Kommo para contar os leads.
+       * * Como estamos testando o visual, estou simulando uma resposta 
+       * que calcula exatamente aquele seu exemplo: 10 agendas e 1 venda.
+       * ---------------------------------------------------------
+       */
+       
+      setTimeout(() => {
+        // Simulando dados reais retornados do banco histórico
+        const totalAgendamentos = 10; 
+        const totalVendas = 1;
+
+        // Calculando a taxa matemática
+        let taxa = 0;
+        if(totalAgendamentos > 0) {
+          taxa = (totalVendas / totalAgendamentos) * 100;
+        }
+
+        // Atualizando a interface
+        document.getElementById('displayAgenda').innerText = totalAgendamentos;
+        document.getElementById('displayVenda').innerText = totalVendas;
+        document.getElementById('displayRate').innerText = taxa.toFixed(1) + '%';
+
+        // Esconde loader e mostra resultado
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('resultArea').style.display = 'block';
+
+      }, 1200); // Simulando o tempo de processamento do servidor
+    }
+  </script>
+</body>
+</html>
