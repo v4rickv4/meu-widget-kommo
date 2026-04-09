@@ -3,17 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulador de Funil - Kommo</title>
+  <title>Metas do Funil - Kommo</title>
   <style>
-    /* Estilos baseados no padrão Kommo */
     :root {
       --primary: #4c8bf7;
       --success: #22c55e;
-      --bg: #ffffff;
-      --bg-alt: #f8f9fb;
-      --text-main: #131420;
-      --text-muted: #8f9a9d;
-      --border: #d3d7d8;
+      --bg: #0f111a;         
+      --bg-alt: #1a1d2e;     
+      --text-main: #ffffff;  
+      --text-muted: #8f9a9d; 
+      --border: #2a2d3d;     
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -28,15 +27,15 @@
     .widget-card {
       background: var(--bg);
       border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
       padding: 24px;
       width: 100%;
-      max-width: 450px;
+      max-width: 400px;
       box-sizing: border-box;
       border: 1px solid var(--border);
     }
     .header {
-      margin-bottom: 20px;
+      margin-bottom: 24px;
       text-align: center;
     }
     .title {
@@ -47,67 +46,52 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    
-    /* Layout das Linhas do Funil */
     .funnel-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--bg-alt);
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
     }
     .funnel-row:last-child {
       border-bottom: none;
     }
-    
-    /* Textos e Inputs */
-    .stage-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
     .stage-name {
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 500;
       color: var(--text-main);
+    }
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .input-box {
-      width: 80px;
+      width: 60px;
       padding: 8px;
+      background: var(--bg-alt);
       border: 1px solid var(--border);
       border-radius: 6px;
-      font-size: 14px;
-      text-align: center;
-      color: var(--text-main);
-      font-weight: 500;
+      font-size: 16px;
+      text-align: right;
+      color: var(--success);
+      font-weight: 700;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.2s;
     }
     .input-box:focus {
       border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(76, 139, 247, 0.2);
     }
-    
-    /* Porcentagens */
-    .conversion-rate {
-      width: 70px;
-      text-align: right;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--success);
-    }
-    .no-rate {
+    .pct-sign {
       color: var(--text-muted);
-      font-size: 12px;
-      font-weight: normal;
+      font-size: 16px;
+      font-weight: 600;
     }
-    
-    /* Status de Salvamento */
-    .save-status {
-      text-align: center;
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 15px;
-      min-height: 16px;
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
     }
   </style>
 </head>
@@ -115,103 +99,103 @@
 
   <div class="widget-card">
     <div class="header">
-      <h3 class="title">Calculadora de Funil</h3>
+      <h3 class="title">Metas do Funil</h3>
     </div>
     
     <div class="funnel-row">
-      <div class="stage-info">
-        <span class="stage-name">1. Total de Leads</span>
+      <span class="stage-name">Qualificado</span>
+      <div class="input-wrap">
+        <input type="number" id="qualificado" class="input-box" value="80" min="0" max="100">
+        <span class="pct-sign">%</span>
       </div>
-      <input type="number" id="valLeads" class="input-box" min="0" placeholder="0" oninput="calcular()">
-      <div class="conversion-rate no-rate">—</div>
     </div>
 
     <div class="funnel-row">
-      <div class="stage-info">
-        <span class="stage-name">2. Qualificados</span>
+      <span class="stage-name">Agendamento</span>
+      <div class="input-wrap">
+        <input type="number" id="agendamento" class="input-box" value="40" min="0" max="100">
+        <span class="pct-sign">%</span>
       </div>
-      <input type="number" id="valQualificados" class="input-box" min="0" placeholder="0" oninput="calcular()">
-      <div class="conversion-rate" id="taxaQualificados">0%</div>
     </div>
 
     <div class="funnel-row">
-      <div class="stage-info">
-        <span class="stage-name">3. Agendamentos</span>
+      <span class="stage-name">Comparecimentos</span>
+      <div class="input-wrap">
+        <input type="number" id="comparecimentos" class="input-box" value="30" min="0" max="100">
+        <span class="pct-sign">%</span>
       </div>
-      <input type="number" id="valAgendamentos" class="input-box" min="0" placeholder="0" oninput="calcular()">
-      <div class="conversion-rate" id="taxaAgendamentos">0%</div>
     </div>
 
     <div class="funnel-row">
-      <div class="stage-info">
-        <span class="stage-name">4. Comparecimentos</span>
+      <span class="stage-name">Vendas Ganhas</span>
+      <div class="input-wrap">
+        <input type="number" id="vendas_ganhas" class="input-box" value="30" min="0" max="100">
+        <span class="pct-sign">%</span>
       </div>
-      <input type="number" id="valComparecimentos" class="input-box" min="0" placeholder="0" oninput="calcular()">
-      <div class="conversion-rate" id="taxaComparecimentos">0%</div>
     </div>
-
-    <div class="funnel-row">
-      <div class="stage-info">
-        <span class="stage-name">5. Vendas Ganhas</span>
-      </div>
-      <input type="number" id="valVendas" class="input-box" min="0" placeholder="0" oninput="calcular()">
-      <div class="conversion-rate" id="taxaVendas">0%</div>
-    </div>
-
-    <div class="save-status" id="statusMensagem">Edite os valores (Salvo no seu navegador)</div>
   </div>
 
-  <script>
-    // 1. Carregar os dados salvos quando a página abrir
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('valLeads').value = localStorage.getItem('mf_leads') || '';
-      document.getElementById('valQualificados').value = localStorage.getItem('mf_qualificados') || '';
-      document.getElementById('valAgendamentos').value = localStorage.getItem('mf_agendamentos') || '';
-      document.getElementById('valComparecimentos').value = localStorage.getItem('mf_comparecimentos') || '';
-      document.getElementById('valVendas').value = localStorage.getItem('mf_vendas') || '';
-      
-      calcular(false); // Calcula com base nos números salvos sem mostrar aviso de salvamento
-    });
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-    // 2. Função que calcula e salva ao mesmo tempo
-    function calcular(mostrarAviso = true) {
-      // Pega os valores digitados (converte para número ou zero)
-      const leads = parseFloat(document.getElementById('valLeads').value) || 0;
-      const qualificados = parseFloat(document.getElementById('valQualificados').value) || 0;
-      const agendamentos = parseFloat(document.getElementById('valAgendamentos').value) || 0;
-      const comparecimentos = parseFloat(document.getElementById('valComparecimentos').value) || 0;
-      const vendas = parseFloat(document.getElementById('valVendas').value) || 0;
+    // Cole suas chaves aqui
+    const supabaseUrl = 'SUA_URL_AQUI'
+    const supabaseKey = 'SUA_CHAVE_ANON_AQUI'
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
-      // Salva no navegador do usuário
-      localStorage.setItem('mf_leads', document.getElementById('valLeads').value);
-      localStorage.setItem('mf_qualificados', document.getElementById('valQualificados').value);
-      localStorage.setItem('mf_agendamentos', document.getElementById('valAgendamentos').value);
-      localStorage.setItem('mf_comparecimentos', document.getElementById('valComparecimentos').value);
-      localStorage.setItem('mf_vendas', document.getElementById('valVendas').value);
+    // Pegando os campos da tela
+    const inputs = {
+      qualificado: document.getElementById('qualificado'),
+      agendamento: document.getElementById('agendamento'),
+      comparecimentos: document.getElementById('comparecimentos'),
+      vendas_ganhas: document.getElementById('vendas_ganhas')
+    }
 
-      // Função matemática para evitar erro de divisão por zero
-      const calcPct = (atual, anterior) => {
-        if (anterior <= 0) return "0%";
-        return ((atual / anterior) * 100).toFixed(1) + "%";
-      };
+    // 1. Busca os dados no Supabase ao abrir a página
+    async function carregarMetas() {
+      const { data, error } = await supabase
+        .from('metas_funil')
+        .select('*')
+        .eq('id', 1) // Vamos usar o ID 1 como a linha padrão das configurações
+        .single()
 
-      // Atualiza os textos na tela (Taxa de avanço de uma etapa para a outra)
-      document.getElementById('taxaQualificados').innerText = calcPct(qualificados, leads);
-      document.getElementById('taxaAgendamentos').innerText = calcPct(agendamentos, qualificados);
-      document.getElementById('taxaComparecimentos').innerText = calcPct(comparecimentos, agendamentos);
-      document.getElementById('taxaVendas').innerText = calcPct(vendas, comparecimentos);
-
-      // Efeito visual de que foi salvo
-      if(mostrarAviso) {
-        const status = document.getElementById('statusMensagem');
-        status.innerText = "✓ Alterações salvas!";
-        status.style.color = "#22c55e";
-        setTimeout(() => {
-          status.innerText = "Edite os valores (Salvo no seu navegador)";
-          status.style.color = "#8f9a9d";
-        }, 2000);
+      if (data) {
+        inputs.qualificado.value = data.qualificado;
+        inputs.agendamento.value = data.agendamento;
+        inputs.comparecimentos.value = data.comparecimentos;
+        inputs.vendas_ganhas.value = data.vendas_ganhas;
       }
     }
+
+    // 2. Salva os dados no Supabase
+    async function salvarMetas() {
+      const metasAtualizadas = {
+        id: 1, // Mantém sempre o ID 1 para atualizar a mesma linha
+        qualificado: Number(inputs.qualificado.value),
+        agendamento: Number(inputs.agendamento.value),
+        comparecimentos: Number(inputs.comparecimentos.value),
+        vendas_ganhas: Number(inputs.vendas_ganhas.value)
+      }
+
+      const { error } = await supabase
+        .from('metas_funil')
+        .upsert(metasAtualizadas)
+
+      if (error) {
+        console.error('Erro ao salvar as metas no banco:', error);
+      } else {
+        console.log('Metas salvas com sucesso no Supabase!');
+      }
+    }
+
+    // Inicia o carregamento
+    carregarMetas();
+
+    // 3. Adiciona um "ouvinte" que dispara a função salvar toda vez que o valor mudar
+    Object.values(inputs).forEach(input => {
+      input.addEventListener('change', salvarMetas);
+    });
+
   </script>
 </body>
 </html>
