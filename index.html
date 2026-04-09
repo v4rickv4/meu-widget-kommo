@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Widget de Conversão - Kommo</title>
+  <title>Simulador de Funil - Kommo</title>
   <style>
-    /* Estilos baseados na interface do Kommo para parecer nativo */
+    /* Estilos baseados no padrão Kommo */
     :root {
       --primary: #4c8bf7;
       --success: #22c55e;
       --bg: #ffffff;
+      --bg-alt: #f8f9fb;
       --text-main: #131420;
       --text-muted: #8f9a9d;
       --border: #d3d7d8;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: transparent; /* Fica transparente no painel do Kommo */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: transparent;
       margin: 0;
       padding: 0;
       display: flex;
@@ -28,99 +29,85 @@
       background: var(--bg);
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      padding: 20px;
+      padding: 24px;
       width: 100%;
-      max-width: 400px;
+      max-width: 450px;
       box-sizing: border-box;
       border: 1px solid var(--border);
     }
     .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
+      text-align: center;
     }
     .title {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 600;
       color: var(--text-main);
       margin: 0;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    .filters {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .filter-input {
-      flex: 1;
-      padding: 6px 10px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-size: 12px;
-      color: var(--text-main);
-      outline: none;
-    }
-    .filter-input:focus { border-color: var(--primary); }
-    .btn-filter {
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 0 15px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .btn-filter:hover { background: #3a70c9; }
     
-    /* Área de Resultados */
-    .result-area {
-      text-align: center;
-      padding: 10px 0;
-    }
-    .conversion-rate {
-      font-size: 36px;
-      font-weight: 700;
-      color: var(--success);
-      margin: 0;
-      line-height: 1;
-    }
-    .conversion-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 5px;
-    }
-    .funnel-stats {
+    /* Layout das Linhas do Funil */
+    .funnel-row {
       display: flex;
-      justify-content: space-around;
-      margin-top: 15px;
-      padding-top: 15px;
-      border-top: 1px solid var(--border);
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--bg-alt);
     }
-    .stat-box {
-      text-align: center;
+    .funnel-row:last-child {
+      border-bottom: none;
     }
-    .stat-value {
-      font-size: 16px;
+    
+    /* Textos e Inputs */
+    .stage-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .stage-name {
+      font-size: 13px;
       font-weight: 600;
       color: var(--text-main);
     }
-    .stat-name {
-      font-size: 10px;
-      color: var(--text-muted);
-      text-transform: uppercase;
+    .input-box {
+      width: 80px;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      text-align: center;
+      color: var(--text-main);
+      font-weight: 500;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-box:focus {
+      border-color: var(--primary);
     }
     
-    /* Loader */
-    .loader {
-      display: none;
-      font-size: 12px;
+    /* Porcentagens */
+    .conversion-rate {
+      width: 70px;
+      text-align: right;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--success);
+    }
+    .no-rate {
       color: var(--text-muted);
+      font-size: 12px;
+      font-weight: normal;
+    }
+    
+    /* Status de Salvamento */
+    .save-status {
       text-align: center;
-      padding: 20px 0;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 15px;
+      min-height: 16px;
     }
   </style>
 </head>
@@ -128,84 +115,102 @@
 
   <div class="widget-card">
     <div class="header">
-      <h3 class="title">Taxa de Avanço</h3>
+      <h3 class="title">Calculadora de Funil</h3>
     </div>
     
-    <div class="filters">
-      <input type="date" id="dateStart" class="filter-input">
-      <input type="date" id="dateEnd" class="filter-input">
-      <button onclick="carregarDados()" class="btn-filter">Filtrar</button>
-    </div>
-
-    <div id="loader" class="loader">Processando histórico...</div>
-
-    <div id="resultArea" class="result-area">
-      <h1 class="conversion-rate" id="displayRate">0%</h1>
-      <div class="conversion-label">Conversão: Agendamento ➔ Venda</div>
-      
-      <div class="funnel-stats">
-        <div class="stat-box">
-          <div class="stat-value" id="displayAgenda">0</div>
-          <div class="stat-name">Agendamentos</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-value" id="displayVenda">0</div>
-          <div class="stat-name">Vendas Ganhas</div>
-        </div>
+    <div class="funnel-row">
+      <div class="stage-info">
+        <span class="stage-name">1. Total de Leads</span>
       </div>
+      <input type="number" id="valLeads" class="input-box" min="0" placeholder="0" oninput="calcular()">
+      <div class="conversion-rate no-rate">—</div>
     </div>
+
+    <div class="funnel-row">
+      <div class="stage-info">
+        <span class="stage-name">2. Qualificados</span>
+      </div>
+      <input type="number" id="valQualificados" class="input-box" min="0" placeholder="0" oninput="calcular()">
+      <div class="conversion-rate" id="taxaQualificados">0%</div>
+    </div>
+
+    <div class="funnel-row">
+      <div class="stage-info">
+        <span class="stage-name">3. Agendamentos</span>
+      </div>
+      <input type="number" id="valAgendamentos" class="input-box" min="0" placeholder="0" oninput="calcular()">
+      <div class="conversion-rate" id="taxaAgendamentos">0%</div>
+    </div>
+
+    <div class="funnel-row">
+      <div class="stage-info">
+        <span class="stage-name">4. Comparecimentos</span>
+      </div>
+      <input type="number" id="valComparecimentos" class="input-box" min="0" placeholder="0" oninput="calcular()">
+      <div class="conversion-rate" id="taxaComparecimentos">0%</div>
+    </div>
+
+    <div class="funnel-row">
+      <div class="stage-info">
+        <span class="stage-name">5. Vendas Ganhas</span>
+      </div>
+      <input type="number" id="valVendas" class="input-box" min="0" placeholder="0" oninput="calcular()">
+      <div class="conversion-rate" id="taxaVendas">0%</div>
+    </div>
+
+    <div class="save-status" id="statusMensagem">Edite os valores (Salvo no seu navegador)</div>
   </div>
 
   <script>
-    // Define datas padrão (Hoje e 7 dias atrás)
+    // 1. Carregar os dados salvos quando a página abrir
     document.addEventListener('DOMContentLoaded', () => {
-      const hoje = new Date();
-      const seteDiasAtras = new Date();
-      seteDiasAtras.setDate(hoje.getDate() - 7);
+      document.getElementById('valLeads').value = localStorage.getItem('mf_leads') || '';
+      document.getElementById('valQualificados').value = localStorage.getItem('mf_qualificados') || '';
+      document.getElementById('valAgendamentos').value = localStorage.getItem('mf_agendamentos') || '';
+      document.getElementById('valComparecimentos').value = localStorage.getItem('mf_comparecimentos') || '';
+      document.getElementById('valVendas').value = localStorage.getItem('mf_vendas') || '';
       
-      document.getElementById('dateEnd').value = hoje.toISOString().split('T')[0];
-      document.getElementById('dateStart').value = seteDiasAtras.toISOString().split('T')[0];
+      calcular(false); // Calcula com base nos números salvos sem mostrar aviso de salvamento
     });
 
-    function carregarDados() {
-      // 1. Mostra o carregamento
-      document.getElementById('resultArea').style.display = 'none';
-      document.getElementById('loader').style.display = 'block';
+    // 2. Função que calcula e salva ao mesmo tempo
+    function calcular(mostrarAviso = true) {
+      // Pega os valores digitados (converte para número ou zero)
+      const leads = parseFloat(document.getElementById('valLeads').value) || 0;
+      const qualificados = parseFloat(document.getElementById('valQualificados').value) || 0;
+      const agendamentos = parseFloat(document.getElementById('valAgendamentos').value) || 0;
+      const comparecimentos = parseFloat(document.getElementById('valComparecimentos').value) || 0;
+      const vendas = parseFloat(document.getElementById('valVendas').value) || 0;
 
-      // 2. Pega as datas selecionadas
-      const start = document.getElementById('dateStart').value;
-      const end = document.getElementById('dateEnd').value;
+      // Salva no navegador do usuário
+      localStorage.setItem('mf_leads', document.getElementById('valLeads').value);
+      localStorage.setItem('mf_qualificados', document.getElementById('valQualificados').value);
+      localStorage.setItem('mf_agendamentos', document.getElementById('valAgendamentos').value);
+      localStorage.setItem('mf_comparecimentos', document.getElementById('valComparecimentos').value);
+      localStorage.setItem('mf_vendas', document.getElementById('valVendas').value);
 
-      /* * ---------------------------------------------------------
-       * INTEGRAÇÃO COM A API DO KOMMO (Onde a mágica acontece)
-       * Aqui faremos a requisição POST/GET para o seu back-end ou 
-       * diretamente para a API de Eventos do Kommo para contar os leads.
-       * * Como estamos testando o visual, estou simulando uma resposta 
-       * que calcula exatamente aquele seu exemplo: 10 agendas e 1 venda.
-       * ---------------------------------------------------------
-       */
-       
-      setTimeout(() => {
-        // Simulando dados reais retornados do banco histórico
-        const totalAgendamentos = 10; 
-        const totalVendas = 1;
+      // Função matemática para evitar erro de divisão por zero
+      const calcPct = (atual, anterior) => {
+        if (anterior <= 0) return "0%";
+        return ((atual / anterior) * 100).toFixed(1) + "%";
+      };
 
-        // Calculando a taxa matemática
-        let taxa = 0;
-        if(totalAgendamentos > 0) {
-          taxa = (totalVendas / totalAgendamentos) * 100;
-        }
+      // Atualiza os textos na tela (Taxa de avanço de uma etapa para a outra)
+      document.getElementById('taxaQualificados').innerText = calcPct(qualificados, leads);
+      document.getElementById('taxaAgendamentos').innerText = calcPct(agendamentos, qualificados);
+      document.getElementById('taxaComparecimentos').innerText = calcPct(comparecimentos, agendamentos);
+      document.getElementById('taxaVendas').innerText = calcPct(vendas, comparecimentos);
 
-        // Atualizando a interface
-        document.getElementById('displayAgenda').innerText = totalAgendamentos;
-        document.getElementById('displayVenda').innerText = totalVendas;
-        document.getElementById('displayRate').innerText = taxa.toFixed(1) + '%';
-
-        // Esconde loader e mostra resultado
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('resultArea').style.display = 'block';
-
-      }, 1200); // Simulando o tempo de processamento do servidor
+      // Efeito visual de que foi salvo
+      if(mostrarAviso) {
+        const status = document.getElementById('statusMensagem');
+        status.innerText = "✓ Alterações salvas!";
+        status.style.color = "#22c55e";
+        setTimeout(() => {
+          status.innerText = "Edite os valores (Salvo no seu navegador)";
+          status.style.color = "#8f9a9d";
+        }, 2000);
+      }
     }
   </script>
 </body>
